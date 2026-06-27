@@ -1,1 +1,1 @@
-Reddit-style community dicussion platform
+Reddit Clone
