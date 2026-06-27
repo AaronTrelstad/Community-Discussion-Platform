@@ -5,7 +5,6 @@ import { User } from "@/types/auth";
 
 type AuthContextType = {
     user: User | null;
-    setUser: (user: User) => void;
     logout: () => void;
     loading: boolean;
 }
@@ -18,17 +17,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         const init = async () => {
-            if (
-                window.location.pathname.includes("/login") ||
-                window.location.pathname.includes("/register")
-            ) {
-                setLoading(false);
-                return;
-            }
-
             try {
-                const user = await getMe();
-                setUser(user);
+                const me = await getMe();
+                setUser(me);
             } catch {
                 setUser(null);
             } finally {
@@ -40,7 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     return (
-        <AuthContext.Provider value={{ user, setUser, logout: logoutFn, loading }}>
+        <AuthContext.Provider value={{ user, logout: logoutFn, loading }}>
             {children}
         </AuthContext.Provider>
     );

@@ -2,14 +2,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { login } from "@/lib/auth";
-import { useAuth } from "@/lib/context/AuthContext";
 import { UserLogin } from "@/types/auth";
 import Link from "next/link";
 import axios from "axios";
 
 export default function LoginPage() {
     const router = useRouter();
-    const { setUser } = useAuth();
     const [form, setForm] = useState<UserLogin>({ email: "", password: "" });
     const [error, setError] = useState<string>("");
     const [loading, setLoading] = useState<boolean>(false);
@@ -20,8 +18,7 @@ export default function LoginPage() {
         setError("");
 
         try {
-            const user = await login(form.email, form.password);
-            setUser(user);
+            await login(form.email, form.password);
             router.push("/");
         } catch (err: unknown) {
             if (axios.isAxiosError(err)) {
@@ -33,6 +30,7 @@ export default function LoginPage() {
             setLoading(false);
         }
     }
+
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">

@@ -12,14 +12,27 @@ import (
 
 type Querier interface {
 	BanUser(ctx context.Context, id uuid.UUID) error
+	CreateCommunity(ctx context.Context, arg CreateCommunityParams) (Community, error)
 	CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) (RefreshToken, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeleteCommunity(ctx context.Context, id uuid.UUID) error
+	GetCommunityByID(ctx context.Context, id uuid.UUID) (Community, error)
+	GetCommunityByName(ctx context.Context, name string) (Community, error)
+	GetCommunityMember(ctx context.Context, arg GetCommunityMemberParams) (CommunityMember, error)
+	GetCommunityMemberCount(ctx context.Context, communityID uuid.UUID) (int64, error)
 	GetRefreshToken(ctx context.Context, token string) (RefreshToken, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByID(ctx context.Context, id uuid.UUID) (User, error)
 	GetUserByUsername(ctx context.Context, username string) (User, error)
+	GetUserCommunities(ctx context.Context, userID uuid.UUID) ([]Community, error)
+	IsUserMember(ctx context.Context, arg IsUserMemberParams) (bool, error)
+	JoinCommunity(ctx context.Context, arg JoinCommunityParams) error
+	LeaveCommunity(ctx context.Context, arg LeaveCommunityParams) error
+	ListCommunities(ctx context.Context, arg ListCommunitiesParams) ([]Community, error)
+	ListCommunityMembers(ctx context.Context, arg ListCommunityMembersParams) ([]ListCommunityMembersRow, error)
 	RevokeAllUserTokens(ctx context.Context, userID uuid.UUID) error
 	RevokeRefreshToken(ctx context.Context, token string) error
+	UpdateCommunity(ctx context.Context, arg UpdateCommunityParams) (Community, error)
 }
 
 var _ Querier = (*Queries)(nil)

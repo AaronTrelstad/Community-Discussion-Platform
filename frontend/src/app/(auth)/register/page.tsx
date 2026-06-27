@@ -2,14 +2,12 @@
 import { useState } from 'react'
 import { useRouter } from "next/navigation";
 import { register } from "@/lib/auth";
-import { useAuth } from "@/lib/context/AuthContext";
 import Link from "next/link";
 import { UserRegister } from '@/types/auth';
 import axios from 'axios';
 
 export default function ReisterPage() {
     const router = useRouter();
-    const { setUser } = useAuth();
     const [form, setForm] = useState<UserRegister>({ username: "", email: "", password: "" });
     const [error, setError] = useState<string>("");
     const [loading, setLoading] = useState<boolean>(false);
@@ -20,12 +18,11 @@ export default function ReisterPage() {
         setError("");
 
         try {
-            const user = await register(form.username, form.email, form.password);
-            setUser(user);
+            await register(form.username, form.email, form.password);
             router.push("/");
         } catch (err: unknown) {
             if (axios.isAxiosError(err)) {
-                setError(err.response?.data?.error || "Login failed");
+                setError(err.response?.data?.error || "Registration failed");
             } else {
                 setError("An unexpected error occurred");
             }

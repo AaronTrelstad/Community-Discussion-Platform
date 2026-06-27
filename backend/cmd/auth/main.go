@@ -8,6 +8,7 @@ import (
 	"github.com/aarontrelstad/api/internal/db"
 	"github.com/aarontrelstad/api/internal/handlers"
 	internalmiddleware "github.com/aarontrelstad/api/internal/middleware"
+	"github.com/aarontrelstad/api/internal/services"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	_ "github.com/lib/pq"
@@ -37,7 +38,8 @@ func main() {
 	}
 
 	queries := db.New(conn)
-	authHandler := handlers.NewAuthHandler(queries)
+	authService := services.NewAuthService(queries)
+	authHandler := handlers.NewAuthHandler(authService)
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
