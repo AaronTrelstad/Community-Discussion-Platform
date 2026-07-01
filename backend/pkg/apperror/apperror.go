@@ -25,4 +25,6 @@ var (
 	ErrNotFound              = &AppError{http.StatusNotFound, "Not found"}
 	ErrForbidden             = &AppError{http.StatusForbidden, "Forbidden"}
 	ErrInvalidCredentials    = &AppError{http.StatusUnauthorized, "Invalid credentials"}
+	ErrListCommunities       = &AppError{http.StatusInternalServerError, "Failed to list communities"}
+	ErrParseURL				 = &AppError{http.StatusBadRequest, "Failed to parse url"}
 )

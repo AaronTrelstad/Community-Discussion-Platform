@@ -9,25 +9,11 @@ import (
 	"github.com/aarontrelstad/api/internal/handlers"
 	internalmiddleware "github.com/aarontrelstad/api/internal/middleware"
 	"github.com/aarontrelstad/api/internal/services"
+	"github.com/aarontrelstad/api/pkg/httputil"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	_ "github.com/lib/pq"
 )
-
-func corsMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		origin := "http://localhost:3000"
-		w.Header().Set("Access-Control-Allow-Origin", origin)
-		w.Header().Set("Access-Control-Allow-Credentials", "true")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		if r.Method == http.MethodOptions {
-			w.WriteHeader(http.StatusNoContent)
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
-}
 
 func main() {
 	dbURL := "postgres://dev:dev@127.0.0.1:5432/reddit?sslmode=disable"
@@ -44,7 +30,7 @@ func main() {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
-	r.Use(corsMiddleware)
+	r.Use(httputil.CORSMiddleware)
 
 	r.Options("/*", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
