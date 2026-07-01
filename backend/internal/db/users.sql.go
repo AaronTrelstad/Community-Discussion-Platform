@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/google/uuid"
 )
@@ -21,6 +22,7 @@ func (q *Queries) BanUser(ctx context.Context, id uuid.UUID) error {
 }
 
 const createUser = `-- name: CreateUser :one
+
 INSERT INTO users (username, email, password)
 VALUES ($1, $2, $3)
 RETURNING id, username, email, password, bio, avatar_url, is_banned, created_at, updated_at
@@ -32,6 +34,7 @@ type CreateUserParams struct {
 	Password string `json:"password"`
 }
 
+// backend/db/queries/users.sql
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
 	row := q.db.QueryRowContext(ctx, createUser, arg.Username, arg.Email, arg.Password)
 	var i User
@@ -97,6 +100,38 @@ SELECT id, username, email, password, bio, avatar_url, is_banned, created_at, up
 
 func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User, error) {
 	row := q.db.QueryRowContext(ctx, getUserByUsername, username)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Email,
+		&i.Password,
+		&i.Bio,
+		&i.AvatarUrl,
+		&i.IsBanned,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const updateUser = `-- name: UpdateUser :one
+UPDATE users SET
+    bio = $2,
+    avatar_url = $3,
+    updated_at = NOW()
+WHERE id = $1
+RETURNING id, username, email, password, bio, avatar_url, is_banned, created_at, updated_at
+`
+
+type UpdateUserParams struct {
+	ID        uuid.UUID      `json:"id"`
+	Bio       sql.NullString `json:"bio"`
+	AvatarUrl sql.NullString `json:"avatar_url"`
+}
+
+func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, updateUser, arg.ID, arg.Bio, arg.AvatarUrl)
 	var i User
 	err := row.Scan(
 		&i.ID,

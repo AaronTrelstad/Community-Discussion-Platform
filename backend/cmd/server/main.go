@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/aarontrelstad/api/internal/db"
 	"github.com/aarontrelstad/api/internal/handlers"
@@ -16,7 +17,10 @@ import (
 )
 
 func main() {
-	dbURL := "postgres://dev:dev@127.0.0.1:5432/reddit?sslmode=disable"
+	dbURL := os.Getenv("DB_URL")
+	if dbURL == "" {
+		dbURL = "postgres://dev:dev@127.0.0.1:5432/agentsandbox?sslmode=disable"
+	}
 
 	conn, err := sql.Open("postgres", dbURL)
 	if err != nil {
@@ -24,8 +28,14 @@ func main() {
 	}
 
 	queries := db.New(conn)
+
+	// Services
 	authService := services.NewAuthService(queries)
+	teamService := services.NewTeamService(queries)
+
+	// Handlers
 	authHandler := handlers.NewAuthHandler(authService)
+	teamHandler := handlers.NewTeamHandler(teamService)
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -41,11 +51,22 @@ func main() {
 	r.Post("/auth/logout", authHandler.Logout)
 	r.Post("/auth/refresh", authHandler.Refresh)
 
+	r.Get("/teams", teamHandler.ListTeams)
+
 	r.Group(func(r chi.Router) {
 		r.Use(internalmiddleware.Auth)
+
 		r.Get("/auth/me", authHandler.Me)
+
+		r.Post("/teams", teamHandler.CreateTeam)
+		r.Put("/teams/{id}", teamHandler.UpdateTeam)
 	})
 
-	log.Println("Running locally on :8080")
-	http.ListenAndServe(":8080", r)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	log.Printf("Running on :%s", port)
+	http.ListenAndServe(":"+port, r)
 }

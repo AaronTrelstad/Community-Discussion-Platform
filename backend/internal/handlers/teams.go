@@ -12,16 +12,16 @@ import (
 	"github.com/google/uuid"
 )
 
-type CommunitiesHandler struct {
-	service *services.CommunityService
+type TeamsHandler struct {
+	service *services.TeamService
 }
 
-func NewCommunitiesHandler(service *services.CommunityService) *CommunitiesHandler {
-	return &CommunitiesHandler{service: service}
+func NewTeamHandler(service *services.TeamService) *TeamsHandler {
+	return &TeamsHandler{service: service}
 }
 
-func (h *CommunitiesHandler) CreateCommunity(w http.ResponseWriter, r *http.Request) {
-	var req requests.CreateCommunityRequest
+func (h *TeamsHandler) CreateTeam(w http.ResponseWriter, r *http.Request) {
+	var req requests.CreateTeamRequest
 	if err := util.Decode(r, &req); err != nil {
 		render.HandleError(w, err)
 		return
@@ -33,39 +33,39 @@ func (h *CommunitiesHandler) CreateCommunity(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	community, err := h.service.CreateCommunity(r.Context(), userID, req)
+	team, err := h.service.CreateTeam(r.Context(), userID, req)
 	if err != nil {
 		render.HandleError(w, err)
 		return
 	}
 
-	render.JSON(w, http.StatusCreated, community)
+	render.JSON(w, http.StatusCreated, team)
 }
 
-func (h *CommunitiesHandler) ListCommunities(w http.ResponseWriter, r *http.Request) {
-	var req requests.ListCommunitiesRequest
+func (h *TeamsHandler) ListTeams(w http.ResponseWriter, r *http.Request) {
+	var req requests.ListTeamsRequest
 	if err := util.Decode(r, &req); err != nil {
 		render.HandleError(w, err)
 		return
 	}
 	
-	communities, err := h.service.ListCommunities(r.Context(), req)
+	teams, err := h.service.ListTeams(r.Context(), req)
 	if err != nil {
 		render.HandleError(w, err)
 		return
 	}
 
-	render.JSON(w, http.StatusOK, communities)
+	render.JSON(w, http.StatusOK, teams)
 }
 
-func (h *CommunitiesHandler) UpdateCommunity(w http.ResponseWriter, r *http.Request) {
-	communityID, err := uuid.Parse(chi.URLParam(r, "id"))
+func (h *TeamsHandler) UpdateTeam(w http.ResponseWriter, r *http.Request) {
+	teamID, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
 		render.HandleError(w, apperror.ErrParseURL)
 		return
 	}
 	
-	var req requests.UpdateCommunityRequest
+	var req requests.UpdateTeamRequest
 	if err := util.Decode(r, &req); err != nil {
 		render.HandleError(w, err)
 		return
@@ -77,11 +77,11 @@ func (h *CommunitiesHandler) UpdateCommunity(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	community, err := h.service.UpdateCommunity(r.Context(), communityID, userID, req)
+	team, err := h.service.UpdateTeam(r.Context(), teamID, userID, req)
 	if err != nil {
 		render.HandleError(w, err)
 		return
 	}
 
-	render.JSON(w, http.StatusOK, community)
+	render.JSON(w, http.StatusOK, team)
 }

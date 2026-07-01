@@ -6,24 +6,57 @@ package db
 
 import (
 	"database/sql"
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/sqlc-dev/pqtype"
 )
 
-type Comment struct {
-	ID        uuid.UUID     `json:"id"`
-	Body      string        `json:"body"`
-	Score     sql.NullInt32 `json:"score"`
-	PostID    uuid.NullUUID `json:"post_id"`
-	AuthorID  uuid.NullUUID `json:"author_id"`
-	ParentID  uuid.NullUUID `json:"parent_id"`
-	IsRemoved sql.NullBool  `json:"is_removed"`
-	CreatedAt sql.NullTime  `json:"created_at"`
-	UpdatedAt sql.NullTime  `json:"updated_at"`
+type Agent struct {
+	ID           uuid.UUID             `json:"id"`
+	Name         string                `json:"name"`
+	Description  sql.NullString        `json:"description"`
+	SystemPrompt string                `json:"system_prompt"`
+	Model        sql.NullString        `json:"model"`
+	Tools        pqtype.NullRawMessage `json:"tools"`
+	TeamID       uuid.NullUUID         `json:"team_id"`
+	CreatedBy    uuid.NullUUID         `json:"created_by"`
+	CreatedAt    sql.NullTime          `json:"created_at"`
+	UpdatedAt    sql.NullTime          `json:"updated_at"`
 }
 
-type Community struct {
+type Event struct {
+	ID        uuid.UUID       `json:"id"`
+	RunID     uuid.UUID       `json:"run_id"`
+	Sequence  int32           `json:"sequence"`
+	Type      string          `json:"type"`
+	Payload   json.RawMessage `json:"payload"`
+	CreatedAt sql.NullTime    `json:"created_at"`
+}
+
+type RefreshToken struct {
+	ID        uuid.UUID    `json:"id"`
+	UserID    uuid.UUID    `json:"user_id"`
+	Token     string       `json:"token"`
+	ExpiresAt time.Time    `json:"expires_at"`
+	RevokedAt sql.NullTime `json:"revoked_at"`
+	CreatedAt sql.NullTime `json:"created_at"`
+}
+
+type Run struct {
+	ID          uuid.UUID      `json:"id"`
+	AgentID     uuid.UUID      `json:"agent_id"`
+	TeamID      uuid.UUID      `json:"team_id"`
+	StartedBy   uuid.UUID      `json:"started_by"`
+	Status      sql.NullString `json:"status"`
+	Input       string         `json:"input"`
+	Output      sql.NullString `json:"output"`
+	StartedAt   sql.NullTime   `json:"started_at"`
+	CompletedAt sql.NullTime   `json:"completed_at"`
+}
+
+type Team struct {
 	ID          uuid.UUID      `json:"id"`
 	Name        string         `json:"name"`
 	Title       string         `json:"title"`
@@ -35,46 +68,11 @@ type Community struct {
 	CreatedAt   sql.NullTime   `json:"created_at"`
 }
 
-type CommunityMember struct {
-	UserID      uuid.UUID      `json:"user_id"`
-	CommunityID uuid.UUID      `json:"community_id"`
-	Role        sql.NullString `json:"role"`
-	JoinedAt    sql.NullTime   `json:"joined_at"`
-}
-
-type ModAction struct {
-	ID          uuid.UUID      `json:"id"`
-	ModeratorID uuid.NullUUID  `json:"moderator_id"`
-	TargetID    uuid.UUID      `json:"target_id"`
-	Target      string         `json:"target"`
-	Action      string         `json:"action"`
-	Reason      sql.NullString `json:"reason"`
-	CreatedAt   sql.NullTime   `json:"created_at"`
-}
-
-type Post struct {
-	ID           uuid.UUID      `json:"id"`
-	Title        string         `json:"title"`
-	Body         sql.NullString `json:"body"`
-	Url          sql.NullString `json:"url"`
-	Type         string         `json:"type"`
-	Score        sql.NullInt32  `json:"score"`
-	CommentCount sql.NullInt32  `json:"comment_count"`
-	CommunityID  uuid.NullUUID  `json:"community_id"`
-	AuthorID     uuid.NullUUID  `json:"author_id"`
-	Embedding    interface{}    `json:"embedding"`
-	IsRemoved    sql.NullBool   `json:"is_removed"`
-	CreatedAt    sql.NullTime   `json:"created_at"`
-	UpdatedAt    sql.NullTime   `json:"updated_at"`
-}
-
-type RefreshToken struct {
-	ID        uuid.UUID    `json:"id"`
-	UserID    uuid.UUID    `json:"user_id"`
-	Token     string       `json:"token"`
-	ExpiresAt time.Time    `json:"expires_at"`
-	RevokedAt sql.NullTime `json:"revoked_at"`
-	CreatedAt sql.NullTime `json:"created_at"`
+type TeamMember struct {
+	UserID   uuid.UUID      `json:"user_id"`
+	TeamID   uuid.UUID      `json:"team_id"`
+	Role     sql.NullString `json:"role"`
+	JoinedAt sql.NullTime   `json:"joined_at"`
 }
 
 type User struct {
@@ -87,18 +85,4 @@ type User struct {
 	IsBanned  sql.NullBool   `json:"is_banned"`
 	CreatedAt sql.NullTime   `json:"created_at"`
 	UpdatedAt sql.NullTime   `json:"updated_at"`
-}
-
-type UserEmbedding struct {
-	UserID    uuid.UUID    `json:"user_id"`
-	Embedding interface{}  `json:"embedding"`
-	UpdatedAt sql.NullTime `json:"updated_at"`
-}
-
-type Vote struct {
-	UserID    uuid.UUID    `json:"user_id"`
-	TargetID  uuid.UUID    `json:"target_id"`
-	Target    string       `json:"target"`
-	Direction int16        `json:"direction"`
-	CreatedAt sql.NullTime `json:"created_at"`
 }

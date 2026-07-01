@@ -12,27 +12,47 @@ import (
 
 type Querier interface {
 	BanUser(ctx context.Context, id uuid.UUID) error
-	CreateCommunity(ctx context.Context, arg CreateCommunityParams) (Community, error)
+	// backend/db/queries/agents.sql
+	CreateAgent(ctx context.Context, arg CreateAgentParams) (Agent, error)
+	// backend/db/queries/events.sql
+	CreateEvent(ctx context.Context, arg CreateEventParams) (Event, error)
+	// backend/db/queries/refresh_tokens.sql
 	CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) (RefreshToken, error)
+	// backend/db/queries/runs.sql
+	CreateRun(ctx context.Context, arg CreateRunParams) (Run, error)
+	// backend/db/queries/teams.sql
+	CreateTeam(ctx context.Context, arg CreateTeamParams) (Team, error)
+	// backend/db/queries/users.sql
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
-	DeleteCommunity(ctx context.Context, id uuid.UUID) error
-	GetCommunityByID(ctx context.Context, id uuid.UUID) (Community, error)
-	GetCommunityByName(ctx context.Context, name string) (Community, error)
-	GetCommunityMember(ctx context.Context, arg GetCommunityMemberParams) (CommunityMember, error)
-	GetCommunityMemberCount(ctx context.Context, communityID uuid.UUID) (int64, error)
+	DeleteAgent(ctx context.Context, id uuid.UUID) error
+	DeleteTeam(ctx context.Context, id uuid.UUID) error
+	GetAgentByID(ctx context.Context, id uuid.UUID) (Agent, error)
+	GetLatestSequence(ctx context.Context, runID uuid.UUID) (interface{}, error)
 	GetRefreshToken(ctx context.Context, token string) (RefreshToken, error)
+	GetRunByID(ctx context.Context, id uuid.UUID) (Run, error)
+	GetTeamByID(ctx context.Context, id uuid.UUID) (Team, error)
+	GetTeamByName(ctx context.Context, name string) (Team, error)
+	GetTeamMember(ctx context.Context, arg GetTeamMemberParams) (TeamMember, error)
+	GetTeamMemberCount(ctx context.Context, teamID uuid.UUID) (int64, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByID(ctx context.Context, id uuid.UUID) (User, error)
 	GetUserByUsername(ctx context.Context, username string) (User, error)
-	GetUserCommunities(ctx context.Context, userID uuid.UUID) ([]Community, error)
+	GetUserTeams(ctx context.Context, userID uuid.UUID) ([]Team, error)
 	IsUserMember(ctx context.Context, arg IsUserMemberParams) (bool, error)
-	JoinCommunity(ctx context.Context, arg JoinCommunityParams) error
-	LeaveCommunity(ctx context.Context, arg LeaveCommunityParams) error
-	ListCommunities(ctx context.Context, arg ListCommunitiesParams) ([]Community, error)
-	ListCommunityMembers(ctx context.Context, arg ListCommunityMembersParams) ([]ListCommunityMembersRow, error)
+	JoinTeam(ctx context.Context, arg JoinTeamParams) error
+	LeaveTeam(ctx context.Context, arg LeaveTeamParams) error
+	ListAgentsByTeam(ctx context.Context, teamID uuid.NullUUID) ([]Agent, error)
+	ListEventsByRun(ctx context.Context, runID uuid.UUID) ([]Event, error)
+	ListRunsByAgent(ctx context.Context, arg ListRunsByAgentParams) ([]Run, error)
+	ListRunsByTeam(ctx context.Context, arg ListRunsByTeamParams) ([]Run, error)
+	ListTeamMembers(ctx context.Context, arg ListTeamMembersParams) ([]ListTeamMembersRow, error)
+	ListTeams(ctx context.Context, arg ListTeamsParams) ([]Team, error)
 	RevokeAllUserTokens(ctx context.Context, userID uuid.UUID) error
 	RevokeRefreshToken(ctx context.Context, token string) error
-	UpdateCommunity(ctx context.Context, arg UpdateCommunityParams) (Community, error)
+	UpdateAgent(ctx context.Context, arg UpdateAgentParams) (Agent, error)
+	UpdateRunStatus(ctx context.Context, arg UpdateRunStatusParams) (Run, error)
+	UpdateTeam(ctx context.Context, arg UpdateTeamParams) (Team, error)
+	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 }
 
 var _ Querier = (*Queries)(nil)
