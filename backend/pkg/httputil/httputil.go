@@ -12,7 +12,7 @@ import (
 
 func Decode(r *http.Request, dst any) error {
     if err := json.NewDecoder(r.Body).Decode(dst); err != nil {
-        return apperror.ErrDecodeRequest
+        return apperror.ErrBadRequest
     }
     return nil
 }

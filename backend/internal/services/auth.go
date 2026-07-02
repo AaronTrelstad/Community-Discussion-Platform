@@ -30,7 +30,7 @@ func NewAuthService(queries *db.Queries) *AuthService {
 func (s *AuthService) Register(ctx context.Context, req requests.RegisterRequest) (db.User, TokenPair, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return db.User{}, TokenPair{}, apperror.ErrHashPassword
+		return db.User{}, TokenPair{}, apperror.ErrInternal
 	}
 
 	user, err := s.queries.CreateUser(ctx, db.CreateUserParams{
@@ -39,7 +39,7 @@ func (s *AuthService) Register(ctx context.Context, req requests.RegisterRequest
 		Password: string(hash),
 	})
 	if err != nil {
-		return db.User{}, TokenPair{}, apperror.ErrCreateUser
+		return db.User{}, TokenPair{}, apperror.ErrInternal
 	}
 
 	tokens, err := s.issueTokens(ctx, user.ID.String())
@@ -53,11 +53,11 @@ func (s *AuthService) Register(ctx context.Context, req requests.RegisterRequest
 func (s *AuthService) Login(ctx context.Context, req requests.LoginRequest) (db.User, TokenPair, error) {
 	user, err := s.queries.GetUserByEmail(ctx, req.Eamil)
 	if err != nil {
-		return db.User{}, TokenPair{}, apperror.ErrInvalidCredentials
+		return db.User{}, TokenPair{}, apperror.ErrInvalidCreds
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
-		return db.User{}, TokenPair{}, apperror.ErrInvalidCredentials
+		return db.User{}, TokenPair{}, apperror.ErrInvalidCreds
 	}
 
 	tokens, err := s.issueTokens(ctx, user.ID.String())
@@ -86,9 +86,15 @@ func (s *AuthService) Logout(ctx context.Context, refreshToken string) error {
 func (s *AuthService) GetUserByID(ctx context.Context, userID string) (db.User, error) {
 	id, err := uuid.Parse(userID)
 	if err != nil {
-		return db.User{}, apperror.ErrInvalidToken
+		return db.User{}, apperror.ErrBadRequest
 	}
-	return s.queries.GetUserByID(ctx, id)
+
+	user, err := s.queries.GetUserByID(ctx, id)
+	if err != nil {
+		return db.User{}, apperror.ErrNotFound
+	}
+
+	return user, nil
 }
 
 func generateRefreshToken() (string, error) {
@@ -103,17 +109,17 @@ func generateRefreshToken() (string, error) {
 func (s *AuthService) issueTokens(ctx context.Context, userIDStr string) (TokenPair, error) {
 	jwt, err := jwtpkg.Generate(userIDStr)
 	if err != nil {
-		return TokenPair{}, apperror.ErrGenerateJWTToken
+		return TokenPair{}, apperror.ErrInternal
 	}
 
 	refreshToken, err := generateRefreshToken()
 	if err != nil {
-		return TokenPair{}, apperror.ErrGenerateRefreshToken
+		return TokenPair{}, apperror.ErrInternal
 	}
 
 	userID, err := uuid.Parse(userIDStr)
 	if err != nil {
-		return TokenPair{}, apperror.ErrInvalidToken
+		return TokenPair{}, apperror.ErrBadRequest
 	}
 
 	_, err = s.queries.CreateRefreshToken(ctx, db.CreateRefreshTokenParams{
@@ -122,7 +128,7 @@ func (s *AuthService) issueTokens(ctx context.Context, userIDStr string) (TokenP
 		ExpiresAt: time.Now().Add(30 * 24 * time.Hour),
 	})
 	if err != nil {
-		return TokenPair{}, apperror.ErrCreateRefreshToken
+		return TokenPair{}, apperror.ErrInternal
 	}
 
 	return TokenPair{JWT: jwt, RefreshToken: refreshToken}, nil

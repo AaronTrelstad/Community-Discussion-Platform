@@ -21,7 +21,7 @@ func NewTeamService(queries *db.Queries) *TeamService {
 func (s *TeamService) CreateTeam(ctx context.Context, userID uuid.UUID, req requests.CreateTeamRequest) (db.Team, error) {
 	_, err := s.queries.GetTeamByName(ctx, req.Name)
 	if err != nil {
-		return db.Team{}, apperror.ErrTeamNameConflict
+		return db.Team{}, apperror.ErrInternal
 	}
 
 	team, err := s.queries.CreateTeam(ctx, db.CreateTeamParams{
@@ -31,7 +31,7 @@ func (s *TeamService) CreateTeam(ctx context.Context, userID uuid.UUID, req requ
 		CreatedBy:   uuid.NullUUID{UUID: userID, Valid: true},
 	})
 	if err != nil {
-		return db.Team{}, apperror.ErrCreateTeam
+		return db.Team{}, apperror.ErrInternal
 	}
 
 	err = s.queries.JoinTeam(ctx, db.JoinTeamParams{
@@ -39,7 +39,7 @@ func (s *TeamService) CreateTeam(ctx context.Context, userID uuid.UUID, req requ
 		TeamID: team.ID,
 	})
 	if err != nil {
-		return db.Team{}, apperror.ErrJoinTeam
+		return db.Team{}, apperror.ErrInternal
 	}
 
 	return team, nil
@@ -51,7 +51,7 @@ func (s *TeamService) ListTeams(ctx context.Context, req requests.ListTeamsReque
 		Offset: req.Offset,
 	})
 	if err != nil {
-		return []db.Team{}, apperror.ErrListTeams
+		return []db.Team{}, apperror.ErrInternal
 	}
 
 	return teams, nil
@@ -63,7 +63,7 @@ func (s *TeamService) UpdateTeam(ctx context.Context, teamID, userID uuid.UUID, 
 		TeamID: teamID,
 	})
 	if err != nil || (member.Role.String != "moderator" && member.Role.String != "admin") {
-		return db.Team{}, apperror.ErrForbidden
+		return db.Team{}, apperror.ErrInternal
 	}
 
 	return s.queries.UpdateTeam(ctx, db.UpdateTeamParams{
@@ -71,4 +71,37 @@ func (s *TeamService) UpdateTeam(ctx context.Context, teamID, userID uuid.UUID, 
 		Title: req.Title,
 		Description: sql.NullString{String: req.Description, Valid: req.Description != ""},
 	})
+}
+
+func (s *TeamService) GetTeam(ctx context.Context, teamID uuid.UUID) (db.Team, error) {
+	team, err := s.queries.GetTeamByID(ctx, teamID)
+	if err != nil {
+		return db.Team{}, apperror.ErrInternal
+	}
+
+	return team, nil
+}
+
+func (s *TeamService) JoinTeam(ctx context.Context, teamID, userID uuid.UUID) (bool, error) {
+	err := s.queries.JoinTeam(ctx, db.JoinTeamParams{
+		UserID: userID,
+		TeamID: teamID,
+	})
+	if err != nil {
+		return false, apperror.ErrInternal
+	}
+
+	return true, nil
+}
+
+func (s *TeamService) LeaveTeam(ctx context.Context, teamID, userID uuid.UUID) (bool, error) {
+	err := s.queries.LeaveTeam(ctx, db.LeaveTeamParams{
+		UserID: userID,
+		TeamID: teamID,
+	})
+	if err != nil {
+		return false, apperror.ErrInternal
+	}
+
+	return true, nil
 }

@@ -29,11 +29,9 @@ func main() {
 
 	queries := db.New(conn)
 
-	// Services
 	authService := services.NewAuthService(queries)
 	teamService := services.NewTeamService(queries)
 
-	// Handlers
 	authHandler := handlers.NewAuthHandler(authService)
 	teamHandler := handlers.NewTeamHandler(teamService)
 
@@ -60,6 +58,9 @@ func main() {
 
 		r.Post("/teams", teamHandler.CreateTeam)
 		r.Put("/teams/{id}", teamHandler.UpdateTeam)
+		r.Get("/teams/{id}", teamHandler.GetTeam)
+		r.Post("/teams/{id}/join", teamHandler.JoinTeam)
+		r.Delete("/teams/{id}/leave", teamHandler.LeaveTeam)
 	})
 
 	port := os.Getenv("PORT")
